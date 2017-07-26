@@ -34,7 +34,7 @@
  *
  ******************************************************************************
 */
- 
+
 /* Includes */
 #include <stdlib.h>
 
@@ -49,13 +49,13 @@
 
 
 /****************** define for i2c configuration *******************************/
- 
+
 #define TEMP_BUF_SIZE   64
 
 /** Maximum buffer size to be used in i2c */
 #define VL53L0X_MAX_I2C_XFER_SIZE   64 /* Maximum buffer size to be used in i2c */
 #define VL53L0X_I2C_USER_VAR         /* none but could be for a flag var to get/pass to mutex interruptible  return flags and try again */
- 
+
 
 #define LOG_FUNCTION_START(fmt, ...) \
 	_LOG_FUNCTION_START(TRACE_MODULE_API, fmt, ##__VA_ARGS__)
@@ -730,6 +730,7 @@ VL53L0X_Error VL53L0X::sequence_step_enabled(VL53L0X_DEV Dev,
 	VL53L0X_SequenceStepId SequenceStepId, uint8_t SequenceConfig,
 	uint8_t *pSequenceStepEnabled)
 {
+  UNUSED(Dev);
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	*pSequenceStepEnabled = 0;
 	LOG_FUNCTION_START("");
@@ -1146,6 +1147,7 @@ uint32_t VL53L0X::VL53L0X_decode_timeout(uint16_t encoded_timeout)
 
 uint32_t VL53L0X::VL53L0X_calc_macro_period_ps(VL53L0X_DEV Dev, uint8_t vcsel_period_pclks)
 {
+  UNUSED(Dev);
 	uint64_t PLL_period_ps;
 	uint32_t macro_period_vclks;
 	uint32_t macro_period_ps;
@@ -1816,6 +1818,7 @@ VL53L0X_Error VL53L0X::VL53L0X_GetMeasurementDataReady(VL53L0X_DEV Dev,
 }
 
 VL53L0X_Error VL53L0X::VL53L0X_PollingDelay(VL53L0X_DEV Dev) {
+    UNUSED(Dev);
     VL53L0X_Error status = VL53L0X_ERROR_NONE;
 
     // do nothing
@@ -1858,6 +1861,7 @@ VL53L0X_Error VL53L0X::VL53L0X_measurement_poll_for_completion(VL53L0X_DEV Dev)
 /* Group PAL Interrupt Functions */
 VL53L0X_Error VL53L0X::VL53L0X_ClearInterruptMask(VL53L0X_DEV Dev, uint32_t InterruptMask)
 {
+  UNUSED(InterruptMask);
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	uint8_t LoopCount;
 	uint8_t Byte;
@@ -2270,6 +2274,7 @@ VL53L0X_Error VL53L0X::VL53L0X_GetInterruptThresholds(VL53L0X_DEV Dev,
 	VL53L0X_DeviceModes DeviceMode, FixPoint1616_t *pThresholdLow,
 	FixPoint1616_t *pThresholdHigh)
 {
+  UNUSED(DeviceMode);
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	uint16_t Threshold16;
 	LOG_FUNCTION_START("");
@@ -3973,6 +3978,7 @@ VL53L0X_Error VL53L0X::VL53L0X_set_reference_spads(VL53L0X_DEV Dev,
 
 VL53L0X_Error VL53L0X::VL53L0X_WaitDeviceBooted(VL53L0X_DEV Dev)
 {
+  UNUSED(Dev);
 	VL53L0X_Error Status = VL53L0X_ERROR_NOT_IMPLEMENTED;
 	LOG_FUNCTION_START("");
 
@@ -4660,7 +4666,7 @@ VL53L0X_Error VL53L0X::VL53L0X_SetLimitCheckEnable(VL53L0X_DEV Dev, uint16_t Lim
 VL53L0X_Error VL53L0X::VL53L0X_StaticInit(VL53L0X_DEV Dev)
 {
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
-	VL53L0X_DeviceParameters_t CurrentParameters = {0};
+	VL53L0X_DeviceParameters_t CurrentParameters;
 	uint8_t *pTuningSettingBuffer;
 	uint16_t tempword = 0;
 	uint8_t tempbyte = 0;
@@ -4901,7 +4907,7 @@ VL53L0X_Error VL53L0X::VL53L0X_GetStopCompletedStatus(VL53L0X_DEV Dev,
 VL53L0X_Error VL53L0X::VL53L0X_WriteMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, uint32_t count)
 {
    int  status;
- 
+
    status = VL53L0X_I2CWrite(Dev->I2cDevAddr, index, pdata, (uint16_t)count);
    return status;
 }
@@ -4923,27 +4929,27 @@ VL53L0X_Error VL53L0X::VL53L0X_ReadMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t
 VL53L0X_Error VL53L0X::VL53L0X_WrByte(VL53L0X_DEV Dev, uint8_t index, uint8_t data)
 {
    int  status;
- 
+
    status=VL53L0X_I2CWrite(Dev->I2cDevAddr, index, &data, 1);
    return status;
 }
- 
+
 VL53L0X_Error VL53L0X::VL53L0X_WrWord(VL53L0X_DEV Dev, uint8_t index, uint16_t data)
 {
    int  status;
    uint8_t buffer[2];
-	
+
 	 buffer[0] = data >> 8;
 	 buffer[1] = data & 0x00FF;
    status=VL53L0X_I2CWrite(Dev->I2cDevAddr, index, (uint8_t *)buffer, 2);
    return status;
 }
- 
+
 VL53L0X_Error VL53L0X::VL53L0X_WrDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t data)
 {
    int  status;
    uint8_t buffer[4];
-	
+
 	 buffer[0] = (data >> 24) & 0xFF;
 	 buffer[1] = (data >> 16) & 0xFF;
 	 buffer[2] = (data >>  8) & 0xFF;
@@ -4964,7 +4970,7 @@ VL53L0X_Error VL53L0X::VL53L0X_RdByte(VL53L0X_DEV Dev, uint8_t index, uint8_t *d
 
    return 0;
 }
- 
+
 VL53L0X_Error VL53L0X::VL53L0X_RdWord(VL53L0X_DEV Dev, uint8_t index, uint16_t *data)
 {
    int  status;
@@ -4978,7 +4984,7 @@ VL53L0X_Error VL53L0X::VL53L0X_RdWord(VL53L0X_DEV Dev, uint8_t index, uint16_t *
    return status;
 
 }
- 
+
 VL53L0X_Error VL53L0X::VL53L0X_RdDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t *data)
 {
    int status;
@@ -5007,25 +5013,25 @@ VL53L0X_Error VL53L0X::VL53L0X_UpdateByte(VL53L0X_DEV Dev, uint8_t index, uint8_
    }
    return status;
 }
- 
+
 VL53L0X_Error VL53L0X::VL53L0X_I2CWrite(uint8_t DeviceAddr, uint8_t RegisterAddr, uint8_t* pBuffer, uint16_t NumByteToWrite)
 {
    dev_i2c->beginTransmission(((uint8_t)(((DeviceAddr) >> 1) & 0x7F)));
-  
+
    dev_i2c->write(RegisterAddr);
    for (int i = 0 ; i < NumByteToWrite ; i++)
      dev_i2c->write(pBuffer[i]);
-  
+
    dev_i2c->endTransmission(true);
    return 0;
 }
- 
+
 VL53L0X_Error VL53L0X::VL53L0X_I2CRead(uint8_t DeviceAddr, uint8_t RegisterAddr, uint8_t* pBuffer, uint16_t NumByteToRead)
 {
    dev_i2c->beginTransmission(((uint8_t)(((DeviceAddr) >> 1) & 0x7F)));
    dev_i2c->write(RegisterAddr);
    dev_i2c->endTransmission(false);
-  
+
    dev_i2c->requestFrom(((uint8_t)(((DeviceAddr) >> 1) & 0x7F)), (byte) NumByteToRead);
 
    int i=0;
@@ -5036,22 +5042,22 @@ VL53L0X_Error VL53L0X::VL53L0X_I2CRead(uint8_t DeviceAddr, uint8_t RegisterAddr,
    }
 
    return 0;
-} 
+}
 
 
 int VL53L0X::ReadID()
 {
     int status = 0;
     uint16_t rl_id=0;
-    
+
     status = VL53L0X_RdWord(Device, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &rl_id);
     if (rl_id == 0xEEAA)
         return status;
-		
+
     return -1;
 }
- 
- 
+
+
 VL53L0X_Error VL53L0X::WaitMeasurementDataReady(VL53L0X_DEV Dev)
 {
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
@@ -5128,7 +5134,7 @@ int VL53L0X::InitSensor(uint8_t NewAddr)
       // deduce silicon version
       status = VL53L0X_GetDeviceInfo(&MyDevice, &DeviceInfo);
 
-			
+
       status=Prepare();
       if(status != VL53L0X_ERROR_NONE)
       {
@@ -5152,15 +5158,16 @@ int VL53L0X::InitSensor(uint8_t NewAddr)
          return VL53L0X_ERROR_INVALID_PARAMS;
       }
    }
-   return status; 
+   return status;
 }
- 
- 
+
+
 
 
 
 int VL53L0X::StartMeasurementSimplified(OperatingMode operating_mode, void (*fptr)(void))
 {
+    UNUSED(fptr);
     int Status = VL53L0X_ERROR_NONE;
 
     uint8_t VhvSettings;
@@ -5270,8 +5277,8 @@ int VL53L0X::StartMeasurementSimplified(OperatingMode operating_mode, void (*fpt
 
     return Status;
 }
- 
- 
+
+
 int VL53L0X::GetMeasurementSimplified(OperatingMode operating_mode, VL53L0X_RangingMeasurementData_t *Data)
 {
     int Status = VL53L0X_ERROR_NONE;
@@ -5299,7 +5306,7 @@ int VL53L0X::GetMeasurementSimplified(OperatingMode operating_mode, VL53L0X_Rang
 
     return Status;
 }
-     
+
 
 int VL53L0X::StopMeasurementSimplified(OperatingMode operating_mode)
 {
@@ -5333,10 +5340,7 @@ int VL53L0X::StopMeasurementSimplified(OperatingMode operating_mode)
 
     return status;
 }
-     
- 
- 
+
+
+
 /******************************************************************************/
-
-
-
