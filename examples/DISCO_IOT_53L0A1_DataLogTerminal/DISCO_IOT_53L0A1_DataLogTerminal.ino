@@ -1,11 +1,11 @@
 /**
- ******************************************************************************
- * @file    X_NUCLEO_53L0A1_DataLogTerminal.ino
- * @author  AST
+ * ******************************************************************************
+ * @file    DISCO_IOT_53L0A1_DataLogTerminal.ino
+ * @author  WI6LABS from AST
  * @version V1.0.0
- * @date    24 March 2016
- * @brief   Arduino test application for the STMicrolectronics X-NUCLEO-53L0A1
- *          proximity sensor expansion board based on FlightSense.
+ * @date    07 July 2017
+ * @brief   Arduino test application for the STMicrolectronics STM32 IOT Discovery Kit
+ *          based on FlightSense.
  *          This application makes use of C++ classes obtained from the C
  *          components' drivers.
  ******************************************************************************
@@ -40,88 +40,34 @@
 
 
 /* Includes ------------------------------------------------------------------*/
-#include <Arduino.h>
 #include <Wire.h>
 #include <vl53l0x_class.h>
-#include <stmpe1600_class.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <assert.h>
 
-#if defined(ARDUINO_SAM_DUE)
-#define DEV_I2C Wire1   //Define which I2C bus is used. Wire1 for the Arduino Due
-#define SerialPort Serial
-#elif defined(ARDUINO_STM32_STAR_OTTO)
-#define DEV_I2C Wire    //Or Wire
-#define SerialPort SerialUSB
-#else
-#define DEV_I2C Wire    //Or Wire
-#define SerialPort Serial
-#endif
-
-// Components.
-STMPE1600DigiOut *xshutdown_top;
-STMPE1600DigiOut *xshutdown_left;
-STMPE1600DigiOut *xshutdown_right;
-VL53L0X *sensor_vl53l0x_top;
-VL53L0X *sensor_vl53l0x_left;
-VL53L0X *sensor_vl53l0x_right;
+// Create components.
+TwoWire WIRE1(D34, D33);  //SDA=D34 & SCL=D33
+VL53L0X sensor_vl53l0x(&WIRE1, D38, D39); //XSHUT=D38 & INT=D39
 
 /* Setup ---------------------------------------------------------------------*/
 
 void setup() {
   int status;
   // Led.
-  pinMode(13, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   // Initialize serial for output.
-  SerialPort.begin(115200);
+  Serial.begin(9600);
 
   // Initialize I2C bus.
-  DEV_I2C.begin();
+  WIRE1.begin();
 
-  // Create VL53L0X top component.
-  xshutdown_top = new STMPE1600DigiOut(&DEV_I2C, GPIO_15, (0x42 * 2));
-  sensor_vl53l0x_top = new VL53L0X(&DEV_I2C, xshutdown_top, A2);
-  
-  // Switch off VL53L0X top component.
-  sensor_vl53l0x_top->VL53L0X_Off();
-  
-  // Create (if present) VL53L0X left component.
-  xshutdown_left = new STMPE1600DigiOut(&DEV_I2C, GPIO_14, (0x43 * 2));
-  sensor_vl53l0x_left = new VL53L0X(&DEV_I2C, xshutdown_left, D8);
-  
-  // Switch off (if present) VL53L0X left component.
-  sensor_vl53l0x_left->VL53L0X_Off();
-  
-  // Create (if present) VL53L0X right component.
-  xshutdown_right = new STMPE1600DigiOut(&DEV_I2C, GPIO_15, (0x43 * 2));
-  sensor_vl53l0x_right = new VL53L0X(&DEV_I2C, xshutdown_right, D2);
-  
-  // Switch off (if present) VL53L0X right component.
-  sensor_vl53l0x_right->VL53L0X_Off();
-  
+  // Switch off VL53L0X component.
+  sensor_vl53l0x.VL53L0X_Off();
+
   // Initialize VL53L0X top component.
-  status = sensor_vl53l0x_top->InitSensor(0x10);
+  status = sensor_vl53l0x.InitSensor(0x10);
   if(status)
   {
-    SerialPort.println("Init sensor_vl53l0x_top failed...");
-  }
-
-  // Initialize VL53L0X left component.
-  status = sensor_vl53l0x_left->InitSensor(0x12);
-  if(status)
-  {
-    SerialPort.println("Init sensor_vl53l0x_left failed...");
-  }
-
-  // Initialize VL53L0X right component.
-  status = sensor_vl53l0x_right->InitSensor(0x14);
-  if(status)
-  {
-    SerialPort.println("Init sensor_vl53l0x_right failed...");
+    Serial.println("Init sensor_vl53l0x failed...");
   }
 }
 
@@ -130,41 +76,20 @@ void setup() {
 
 void loop() {
   // Led blinking.
-  digitalWrite(13, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH);
   delay(100);
-  digitalWrite(13, LOW);
-  
+  digitalWrite(LED_BUILTIN, LOW);
+
   // Read Range.
   uint32_t distance;
   int status;
-  status = sensor_vl53l0x_top->GetDistance(&distance);
+  status = sensor_vl53l0x.GetDistance(&distance);
 
   if (status == VL53L0X_ERROR_NONE)
   {
     // Output data.
     char report[64];
-    snprintf(report, sizeof(report), "| Distance top [mm]: %ld |", distance);
-    SerialPort.println(report);
-  }
-
-  status = sensor_vl53l0x_left->GetDistance(&distance);
-
-  if (status == VL53L0X_ERROR_NONE)
-  {
-    // Output data.
-    char report[64];
-    snprintf(report, sizeof(report), "| Distance left [mm]: %ld |", distance);
-    SerialPort.println(report);
-  }
-
-  status = sensor_vl53l0x_right->GetDistance(&distance);
-
-  if (status == VL53L0X_ERROR_NONE)
-  {
-    // Output data.
-    char report[64];
-    snprintf(report, sizeof(report), "| Distance right [mm]: %ld |", distance);
-    SerialPort.println(report);
+    snprintf(report, sizeof(report), "| Distance [mm]: %ld |", distance);
+    Serial.println(report);
   }
 }
-

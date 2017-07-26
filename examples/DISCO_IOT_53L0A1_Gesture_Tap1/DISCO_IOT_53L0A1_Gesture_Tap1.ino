@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @file    X_NUCLEO_53L0A1_Gesture_Tap1.ino
- * @author  AST
+ * @file    DISCO_IOT_53L0A1_Gesture_Tap1.ino
+ * @author  WI6LABS from AST
  * @version V1.0.0
- * @date    21 April 2017
- * @brief   Arduino test application for the STMicrolectronics X-NUCLEO-53L0A1
- *          proximity sensor expansion board based on FlightSense and gesture library.
+ * @date    07 July 2017
+ * @brief   Arduino test application for the STMicrolectronics STM32 IOT Discovery Kit
+ *          based on FlightSense and gesture library.
  *          This application makes use of C++ classes obtained from the C
  *          components' drivers.
  ******************************************************************************
@@ -40,36 +40,14 @@
 
 
 /* Includes ------------------------------------------------------------------*/
-#include <Arduino.h>
 #include <Wire.h>
 #include <vl53l0x_class.h>
-#include <stmpe1600_class.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <assert.h>
 #include <tof_gestures.h>
 #include <tof_gestures_TAP_1.h>
 
-#if defined(ARDUINO_SAM_DUE)
-#define DEV_I2C Wire1   //Define which I2C bus is used. Wire1 for the Arduino Due
-#define SerialPort Serial
-#elif defined(ARDUINO_STM32_STAR_OTTO)
-#define DEV_I2C Wire    //Or Wire
-#define SerialPort SerialUSB
-#else
-#define DEV_I2C Wire    //Or Wire
-#define SerialPort Serial
-#endif
-
-// Components.
-STMPE1600DigiOut *xshutdown_top;
-STMPE1600DigiOut *xshutdown_left;
-STMPE1600DigiOut *xshutdown_right;
-VL53L0X *sensor_vl53l0x_top;
-VL53L0X *sensor_vl53l0x_left;
-VL53L0X *sensor_vl53l0x_right;
+// Create components.
+TwoWire WIRE1(D34, D33);  //SDA=D34 & SCL=D33
+VL53L0X sensor_vl53l0x(&WIRE1, D38, D39); //XSHUT=D38 & INT=D39
 
 // Gesture structure.
 Gesture_TAP_1_Data_t gestureTapData;
@@ -87,29 +65,29 @@ void SetupSingleShot(void){
   uint32_t refSpadCount;
   uint8_t isApertureSpads;
 
-  status = sensor_vl53l0x_top->StaticInit();
+  status = sensor_vl53l0x.StaticInit();
   if( status ){
-    SerialPort.println("StaticInit top sensor failed");
+    Serial.println("StaticInit sensor failed");
   }
 
-  status = sensor_vl53l0x_top->PerformRefCalibration(&VhvSettings, &PhaseCal);
+  status = sensor_vl53l0x.PerformRefCalibration(&VhvSettings, &PhaseCal);
   if( status ){
-    SerialPort.println("PerformRefCalibration top sensor failed");
+    Serial.println("PerformRefCalibration sensor failed");
   }
 
-  status = sensor_vl53l0x_top->PerformRefSpadManagement(&refSpadCount, &isApertureSpads);
+  status = sensor_vl53l0x.PerformRefSpadManagement(&refSpadCount, &isApertureSpads);
   if( status ){
-    SerialPort.println("PerformRefSpadManagement top sensor failed");
+    Serial.println("PerformRefSpadManagement sensor failed");
   }
 
-  status = sensor_vl53l0x_top->SetDeviceMode(VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
+  status = sensor_vl53l0x.SetDeviceMode(VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
   if( status ){
-    SerialPort.println("SetDeviceMode top sensor failed");
+    Serial.println("SetDeviceMode sensor failed");
   }
 
-  status = sensor_vl53l0x_top->SetMeasurementTimingBudgetMicroSeconds(20*1000);
+  status = sensor_vl53l0x.SetMeasurementTimingBudgetMicroSeconds(20*1000);
   if( status ){
-    SerialPort.println("SetMeasurementTimingBudgetMicroSeconds top sensor failed");
+    Serial.println("SetMeasurementTimingBudgetMicroSeconds sensor failed");
   }
 }
 
@@ -117,44 +95,24 @@ void SetupSingleShot(void){
 
 void setup() {
   int status;
-  // Led.
-  pinMode(13, OUTPUT);
 
   // Initialize serial for output.
-  SerialPort.begin(115200);
+  Serial.begin(9600);
 
   // Initialize I2C bus.
-  DEV_I2C.begin();
+  WIRE1.begin();
 
-  // Create VL53L0X top component.
-  xshutdown_top = new STMPE1600DigiOut(&DEV_I2C, GPIO_15, (0x42 * 2));
-  sensor_vl53l0x_top = new VL53L0X(&DEV_I2C, xshutdown_top, A2);
-  
   // Switch off VL53L0X top component.
-  sensor_vl53l0x_top->VL53L0X_Off();
-  
-  // Create (if present) VL53L0X left component.
-  xshutdown_left = new STMPE1600DigiOut(&DEV_I2C, GPIO_14, (0x43 * 2));
-  sensor_vl53l0x_left = new VL53L0X(&DEV_I2C, xshutdown_left, D8);
-  
-  // Switch off (if present) VL53L0X left component.
-  sensor_vl53l0x_left->VL53L0X_Off();
-  
-  // Create (if present) VL53L0X right component.
-  xshutdown_right = new STMPE1600DigiOut(&DEV_I2C, GPIO_15, (0x43 * 2));
-  sensor_vl53l0x_right = new VL53L0X(&DEV_I2C, xshutdown_right, D2);
-  
-  // Switch off (if present) VL53L0X right component.
-  sensor_vl53l0x_right->VL53L0X_Off();
-  
+  sensor_vl53l0x.VL53L0X_Off();
+
   // Initialize VL53L0X top component.
-  status = sensor_vl53l0x_top->InitSensor(0x10);
+  status = sensor_vl53l0x.InitSensor(0x10);
   if(status)
   {
-    SerialPort.println("Init sensor_vl53l0x_top failed...");
+    Serial.println("Init sensor_vl53l0x failed...");
   }
-  
-  // Initialize VL6180X gesture library.
+
+  // Initialize gesture library.
   tof_gestures_initTAP_1(&gestureTapData);
 
   SetupSingleShot();
@@ -166,9 +124,9 @@ void setup() {
 void loop() {
   int gesture_code;
   int status;
-  
-  sensor_vl53l0x_top->StartMeasurement();
-  
+
+  sensor_vl53l0x.StartMeasurement();
+
   int top_done = 0;
   uint8_t NewDataReady=0;
   VL53L0X_RangingMeasurementData_t pRangingMeasurementData;
@@ -178,22 +136,22 @@ void loop() {
     if(top_done == 0)
     {
       NewDataReady = 0;
-      int status = sensor_vl53l0x_top->GetMeasurementDataReady(&NewDataReady);
+      status = sensor_vl53l0x.GetMeasurementDataReady(&NewDataReady);
 
       if( status ){
-        SerialPort.println("GetMeasurementDataReady top sensor failed");
+        Serial.println("GetMeasurementDataReady sensor failed");
       }
-      
+
       if(NewDataReady)
       {
-        status = sensor_vl53l0x_top->ClearInterruptMask(0);
+        status = sensor_vl53l0x.ClearInterruptMask(0);
         if( status ){
-          SerialPort.println("ClearInterruptMask top sensor failed");
+          Serial.println("ClearInterruptMask sensor failed");
         }
 
-        status = sensor_vl53l0x_top->GetRangingMeasurementData(&pRangingMeasurementData);
+        status = sensor_vl53l0x.GetRangingMeasurementData(&pRangingMeasurementData);
         if( status ){
-          SerialPort.println("GetRangingMeasurementData top sensor failed");
+          Serial.println("GetRangingMeasurementData sensor failed");
         }
 
         if (pRangingMeasurementData.RangeStatus == 0) {
@@ -202,12 +160,12 @@ void loop() {
         }else {
           distance_top = 1200;
         }
-        
+
         top_done = 1;
       }
     }
   }while(top_done == 0);
-  
+
   // Launch gesture detection algorithm.
   gesture_code = tof_gestures_detectTAP_1(distance_top, &gestureTapData);
 
@@ -215,11 +173,10 @@ void loop() {
   switch(gesture_code)
   {
     case GESTURES_SINGLE_TAP:
-      SerialPort.println("GESTURES_SINGLE_TAP DETECTED!!!");
+      Serial.println("GESTURES_SINGLE_TAP DETECTED!!!");
       break;
     default:
       // Do nothing
       break;
   }
 }
-
