@@ -44,18 +44,17 @@
 /* Includes ------------------------------------------------------------------*/
 #include "Arduino.h"
 #include "RangeSensor.h"
-#include "Wire.h" 
+#include "Wire.h"
 
 #include "vl53l0x_def.h"
 #include "vl53l0x_platform.h"
-#include "stmpe1600_class.h"
 
 
 /**
  * The device model ID
  */
 //#define IDENTIFICATION_MODEL_ID                 0x000
- 
+
 
 //#define STATUS_OK              0x00
 //#define STATUS_FAIL            0x01
@@ -275,7 +274,7 @@
 
 
 
-/* sensor operating modes */ 
+/* sensor operating modes */
 typedef enum
 {
    range_single_shot_polling=1,
@@ -301,69 +300,47 @@ class VL53L0X : public RangeSensor
     /** Constructor
      * @param[in] &i2c device I2C to be used for communication
      * @param[in] &pin_gpio1 pin Mbed InterruptIn PinName to be used as component GPIO_1 INT
-     * @param[in] DevAddr device address, 0x29 by default  
+     * @param[in] DevAddr device address, 0x29 by default
      */
     VL53L0X(TwoWire *i2c, int pin, int pin_gpio1, uint8_t DevAddr=VL53L0x_DEFAULT_DEVICE_ADDRESS) : RangeSensor(), dev_i2c(i2c), gpio0(pin), gpio1Int(pin_gpio1)
     {
-       MyDevice.I2cDevAddr=DevAddr;		 
+       MyDevice.I2cDevAddr=DevAddr;
        MyDevice.comms_type=1; // VL53L0X_COMMS_I2C
        MyDevice.comms_speed_khz=400;
        Device=&MyDevice;
        pinMode(gpio0, OUTPUT);
-       expgpio0=NULL;
-    }  
-    
-    /** Constructor 2 (STMPE1600DigiOut)
-     * @param[in] i2c device I2C to be used for communication
-     * @param[in] &pin Gpio Expander STMPE1600DigiOut pin to be used as component GPIO_0 CE
-     * @param[in] pin_gpio1 pin Mbed InterruptIn PinName to be used as component GPIO_1 INT
-     * @param[in] device address, 0x29 by default  
-     */		
-    VL53L0X(TwoWire *i2c, STMPE1600DigiOut *pin, int pin_gpio1, uint8_t DevAddr=VL53L0x_DEFAULT_DEVICE_ADDRESS) : RangeSensor(), dev_i2c(i2c), expgpio0(pin), gpio1Int(pin_gpio1)
-    {
-       MyDevice.I2cDevAddr=DevAddr;		 
-       MyDevice.comms_type=1; // VL53L0X_COMMS_I2C
-       MyDevice.comms_speed_khz=400;
-       Device=&MyDevice;
-       gpio0=0;
-    }  	 
+    }
     
    /** Destructor
     */
-    virtual ~VL53L0X(){}     
+    virtual ~VL53L0X(){}
     /* warning: VL53L0X class inherits from GenericSensor, RangeSensor and LightSensor, that haven`t a destructor.
        The warning should request to introduce a virtual destructor to make sure to delete the object */
 
-	/*** Interface Methods ***/	
-	/*** High level API ***/		
+	/*** Interface Methods ***/
+	/*** High level API ***/
 	/**
 	 * @brief       PowerOn the sensor
 	 * @return      void
-	 */		
-    /* turns on the sensor */		 
-    void VL53L0X_On(void)
+	 */
+    /* turns on the sensor */
+    virtual void VL53L0X_On(void)
     {
-       if(gpio0)
-         digitalWrite(gpio0, HIGH);		   
-       else if(expgpio0) 
-         expgpio0->write(1);
-       delay(10);    
-    } 
+       digitalWrite(gpio0, HIGH);
+       delay(10);
+    }
 
 	/**
 	 * @brief       PowerOff the sensor
 	 * @return      void
-	 */		
+	 */
     /* turns off the sensor */
-    void VL53L0X_Off(void) 
+    virtual void VL53L0X_Off(void)
     {
-       if(gpio0) 
-         digitalWrite(gpio0, LOW);
-       else if(expgpio0) 
-         expgpio0->write(0);
-       delay(10);    
+       digitalWrite(gpio0, LOW);
+       delay(10);
     }
-    
+
 	/**
 	 * @brief       Initialize the sensor with default values
 	 * @return      0 on Success
@@ -372,10 +349,10 @@ class VL53L0X : public RangeSensor
 
 	/**
 	 * @brief       Start the measure indicated by operating mode
-	 * @param[in]   operating_mode specifies requested measure 
-	 * @param[in]   fptr specifies call back function must be !NULL in case of interrupt measure	 
+	 * @param[in]   operating_mode specifies requested measure
+	 * @param[in]   fptr specifies call back function must be !NULL in case of interrupt measure
 	 * @return      0 on Success
-	 */					     
+	 */
     int StartMeasurementSimplified(OperatingMode operating_mode, void (*fptr)(void));
 
 	/**
@@ -383,21 +360,21 @@ class VL53L0X : public RangeSensor
 	 * @param[in]   operating_mode specifies requested measure results
 	 * @param[out]  Data pointer to the MeasureData_t structure to read data in to
 	 * @return      0 on Success
-	 */					         
-    int GetMeasurementSimplified(OperatingMode operating_mode, VL53L0X_RangingMeasurementData_t *Data);		
+	 */
+    int GetMeasurementSimplified(OperatingMode operating_mode, VL53L0X_RangingMeasurementData_t *Data);
 
 	/**
 	 * @brief       Stop the currently running measure indicate by operating_mode
 	 * @param[in]   operating_mode specifies requested measure to stop
 	 * @return      0 on Success
-	 */					             
+	 */
     int StopMeasurementSimplified(OperatingMode operating_mode);
-		
-    /** Wrapper functions */	
+
+    /** Wrapper functions */
 /** @defgroup api_init Init functions
  *  @brief    API init functions
  *  @ingroup api_hl
- *  @{  
+ *  @{
  */
 /**
  * @brief Wait for device booted after chip enable (hardware standby)
@@ -432,7 +409,7 @@ class VL53L0X : public RangeSensor
  *
  * @param void
  * @return     0 on success,  @a #CALIBRATION_WARNING if failed
- */		
+ */
     virtual int Init()
     {
        return VL53L0X_DataInit(Device);
@@ -450,7 +427,7 @@ class VL53L0X : public RangeSensor
   *
   * @param void
   * @return      0 on success
-  */		
+  */
     int Prepare()
     {
         // taken from rangingTest() in vl53l0x_SingleRanging_Example.c
@@ -464,7 +441,7 @@ class VL53L0X : public RangeSensor
         {
             Status = VL53L0X_StaticInit(Device); // Device Initialization
         }
-    
+
         if(Status == VL53L0X_ERROR_NONE)
         {
            Status = VL53L0X_PerformRefCalibration(Device, &VhvSettings, &PhaseCal); // Device Initialization
@@ -474,115 +451,9 @@ class VL53L0X : public RangeSensor
         {
             Status = VL53L0X_PerformRefSpadManagement(Device, &refSpadCount, &isApertureSpads); // Device Initialization
         }
-			
+
         return Status;
     }
-
- /**
- * @brief Start continuous ranging mode
- *
- * @details End user should ensure device is in idle state and not already running
- * @return      0 on success
- */		
-//    int RangeStartContinuousMode()
-//    {
-//       return VL6180x_RangeStartContinuousMode(Device);
-//			return 1;
-//    }
-
-/**
- * @brief Start single shot ranging measure
- *
- * @details End user should ensure device is in idle state and not already running
- * @return      0 on success 
- */		
-//    int RangeStartSingleShot()
-//    {
-//       return VL6180x_RangeStartSingleShot(Device);
-//			return 1;
-//    }
-
-/**
- * @brief Set maximum convergence time
- *
- * @par Function Description
- * Setting a low convergence time can impact maximal detectable distance.
- * Refer to VL6180x Datasheet Table 7 : Typical range convergence time.
- * A typical value for up to x3 scaling is 50 ms
- *
- * @param MaxConTime_msec
- * @return 0 on success. <0 on error. >0 for calibration warning status
- */		
-//    int RangeSetMaxConvergenceTime(uint8_t MaxConTime_msec)
-//    {
-//       return VL6180x_RangeSetMaxConvergenceTime(Device, MaxConTime_msec);
-//			return 1;
-//    }
-
-/**
-  * @brief Single shot Range measurement in polling mode.
-  *
-  * @par Function Description
-  * Kick off a new single shot range  then wait for ready to retrieve it by polling interrupt status \n
-  * Ranging must be prepared by a first call to  @a VL6180x_Prepare() and it is safer to clear  very first poll call \n
-  * This function reference VL6180x_PollDelay(dev) porting macro/call on each polling loop,
-  * but PollDelay(dev) may never be called if measure in ready on first poll loop \n
-  * Should not be use in continuous mode operation as it will stop it and cause stop/start misbehaviour \n
-  * \n This function clears Range Interrupt status , but not error one. For that uses  @a VL6180x_ClearErrorInterrupt() \n
-  * This range error is not related VL6180x_RangeData_t::errorStatus that refer measure status \n
-  * 
-  * @param pRangeData   Will be populated with the result ranging data @a  VL6180x_RangeData_t
-  * @return 0 on success , @a #RANGE_ERROR if device reports an error case in it status (not cleared) use
-  *
-  * \sa ::VL6180x_RangeData_t
-  */		
-//    int RangePollMeasurement(VL53L0X_RangingMeasurementData_t *pRangeData)
-//    {
-//       return VL6180x_RangePollMeasurement(Device, pRangeData);
-//			return 1;
-//    }
-
-/**
- * @brief Check for measure readiness and get it if ready
- *
- * @par Function Description
- * Using this function is an alternative to @a VL6180x_RangePollMeasurement() to avoid polling operation. This is suitable for applications
- * where host CPU is triggered on a interrupt (not from VL6180X) to perform ranging operation. In this scenario, we assume that the very first ranging
- * operation is triggered by a call to @a VL6180x_RangeStartSingleShot(). Then, host CPU regularly calls @a VL6180x_RangeGetMeasurementIfReady() to
- * get a distance measure if ready. In case the distance is not ready, host may get it at the next call.\n
- *
- * @warning 
- * This function does not re-start a new measurement : this is up to the host CPU to do it.\n 
- * This function clears Range Interrupt for measure ready , but not error interrupts. For that, uses  @a VL6180x_ClearErrorInterrupt() \n
- *
- * @param pRangeData  Will be populated with the result ranging data if available
- * @return  0 when measure is ready pRange data is updated (untouched when not ready),  >0 for warning and @a #NOT_READY if measurement not yet ready, <0 for error @a #RANGE_ERROR if device report an error,
- */		
-//    int RangeGetMeasurementIfReady(VL53L0X_RangingMeasurementData_t *pRangeData)
-//    {
-//       return VL6180x_RangeGetMeasurementIfReady(Device, pRangeData);
-//			return 1;
-//    }
-
-/**
- * @brief Retrieve range measurements set  from device
- *
- * @par Function Description
- * The measurement is made of range_mm status and error code @a VL6180x_RangeData_t \n
- * Based on configuration selected extra measures are included.
- *
- * @warning should not be used in continuous if wrap around filter is active \n
- * Does not perform any wait nor check for result availability or validity.
- *\sa VL6180x_RangeGetResult for "range only" measurement
- *
- * @param pRangeData  Pointer to the data structure to fill up
- * @return            0 on success
- */		
-//    int RangeGetMeasurement(VL53L0X_RangingMeasurementData_t *pRangeData)
-//    {
-//       return VL6180x_RangeGetMeasurement(Device, pRangeData);
-//			return 1;
-//    }
 
 /**
  * @brief Get ranging result and only that
@@ -596,7 +467,7 @@ class VL53L0X : public RangeSensor
  *
  * @param pRange_mm  Pointer to range distance
  * @return           0 on success
- */		
+ */
     virtual int GetDistance(uint32_t *piData)
     {
         int status=0;
@@ -629,274 +500,6 @@ class VL53L0X : public RangeSensor
     }
 
 /**
- * @brief Wait for device to be ready (before a new ranging command can be issued by application)
- * @param MaxLoop    Max Number of i2c polling loop see @a #msec_2_i2cloop
- * @return           0 on success. <0 when fail \n
- *                   @ref VL6180x_ErrCode_t::TIME_OUT for time out \n
- *                   @ref VL6180x_ErrCode_t::INVALID_PARAMS if MaxLop<1
- */		
-//    int RangeWaitDeviceReady(int MaxLoop )
-//    {
-//       return VL6180x_RangeWaitDeviceReady(Device, MaxLoop);
-//			return 1;
-//    }
-
-/**
- * @brief Program Inter measurement period (used only in continuous mode)
- *
- * @par Function Description
- * When trying to set too long time, it returns #INVALID_PARAMS
- *
- * @param InterMeasTime_msec Requires inter-measurement time in msec
- * @return 0 on success
- */		
-//    int RangeSetInterMeasPeriod(uint32_t  InterMeasTime_msec)
-//    {
-//       return VL6180x_RangeSetInterMeasPeriod(Device, InterMeasTime_msec);
-//			return 1;
-//    }
-
-/**
- * @brief Set device ranging scaling factor
- *
- * @par Function Description
- * The ranging scaling factor is applied on the raw distance measured by the device to increase operating ranging at the price of the precision.
- * Changing the scaling factor when device is not in f/w standby state (free running) is not safe.
- * It can be source of spurious interrupt, wrongly scaled range etc ...
- * @warning __This  function doesns't update high/low threshold and other programmed settings linked to scaling factor__.
- *  To ensure proper operation, threshold and scaling changes should be done following this procedure: \n
- *  @li Set Group hold  : @a VL6180x_SetGroupParamHold() \n
- *  @li Get Threshold @a VL6180x_RangeGetThresholds() \n
- *  @li Change scaling : @a VL6180x_UpscaleSetScaling() \n
- *  @li Set Threshold : @a VL6180x_RangeSetThresholds() \n
- *  @li Unset Group Hold : @a VL6180x_SetGroupParamHold()
- *
- * @param scaling  Scaling factor to apply (1,2 or 3)
- * @return          0 on success when up-scale support is not configured it fail for any
- *                  scaling than the one statically configured.
- */
-//    int UpscaleSetScaling(uint8_t scaling)
-//    {
-//       return VL6180x_UpscaleSetScaling(Device, scaling);
-//			return 1;
-//    }
-
-/**
- * @brief Get current ranging scaling factor
- *
- * @return    The current scaling factor
- */				
-//    int UpscaleGetScaling()
-//    {
-//       return VL6180x_UpscaleGetScaling(Device);
-//			return 1;
-//    }
-
-/**
- * @brief Get the maximal distance for actual scaling
- * @par Function Description
- * Do not use prior to @a VL6180x_Prepare() or at least @a VL6180x_InitData()
- *
- * Any range value more than the value returned by this function is to be considered as "no target detected"
- * or "no target in detectable range" \n
- * @warning The maximal distance depends on the scaling
- *
- * @return    The maximal range limit for actual mode and scaling
- */		
-//    uint16_t GetUpperLimit()
-//    {
-//       return VL6180x_GetUpperLimit(Device);
-//			return 1;
-//    }
-
-/**
- * @brief Apply low and high ranging thresholds that are considered only in continuous mode
- *
- * @par Function Description
- * This function programs low and high ranging thresholds that are considered in continuous mode : 
- * interrupt will be raised only when an object is detected at a distance inside this [low:high] range.  
- * The function takes care of applying current scaling factor if any.\n
- * To be safe, in continuous operation, thresholds must be changed under "group parameter hold" cover.
- * Group hold can be activated/deactivated directly in the function or externally (then set 0)
- * using /a VL6180x_SetGroupParamHold() function.
- *
- * @param low      Low threshold in mm
- * @param high     High threshold in mm
- * @param SafeHold  Use of group parameters hold to surround threshold programming.
- * @return  0 On success
- */		
-//    int RangeSetThresholds(uint16_t low, uint16_t high, int SafeHold)
-//    {
-//       return VL6180x_RangeSetThresholds(Device, low, high, SafeHold);
-//			return 1;
-//    }
-
-/**
- * @brief  Get scaled high and low threshold from device
- *
- * @par Function Description
- * Due to scaling factor, the returned value may be different from what has been programmed first (precision lost).
- * For instance VL6180x_RangeSetThresholds(dev,11,22) with scale 3
- * will read back 9 ((11/3)x3) and 21 ((22/3)x3).
- *
- * @param low  scaled low Threshold ptr  can be NULL if not needed
- * @param high scaled High Threshold ptr can be NULL if not needed
- * @return 0 on success, return value is undefined if both low and high are NULL
- * @warning return value is undefined if both low and high are NULL
- */
-//    int RangeGetThresholds(uint16_t *low, uint16_t *high)
-//    {
-//       return VL6180x_RangeGetThresholds(Device, low, high);
-//			return 1;
-//    }
-
-/**
- * @brief Set ranging raw thresholds (scaling not considered so not recommended to use it)
- *
- * @param low  raw low threshold set to raw register
- * @param high raw high threshold set to raw  register
- * @return 0 on success
- */			
-//    int RangeSetRawThresholds(uint8_t low, uint8_t high)
-//    {
-//       return VL6180x_RangeSetRawThresholds(Device, low, high);
-//			return 1;
-//    }
-
-/**
- * @brief Set Early Convergence Estimate ratio
- * @par Function Description
- * For more information on ECE check datasheet
- * @warning May return a calibration warning in some use cases
- *
- * @param FactorM    ECE factor M in M/D
- * @param FactorD    ECE factor D in M/D
- * @return           0 on success. <0 on error. >0 on warning
- */		
-//    int RangeSetEceFactor(uint16_t  FactorM, uint16_t FactorD)
-//    {
-//       return VL6180x_RangeSetEceFactor(Device, FactorM, FactorD);
-//			return 1;
-//    }
-
-/**
- * @brief Set Early Convergence Estimate state (See #SYSRANGE_RANGE_CHECK_ENABLES register)
- * @param enable    State to be set 0=disabled, otherwise enabled
- * @return          0 on success
- */		
-//    int RangeSetEceState(int enable)
-//    {
-//       return VL6180x_RangeSetEceState(Device, enable);
-//			return 1;
-//    }
-
-/**
- * @brief Set activation state of the wrap around filter
- * @param state New activation state (0=off,  otherwise on)
- * @return      0 on success
- */			
-//    int FilterSetState(int state)
-//    {
-//       return VL6180x_FilterSetState(Device, state);
-//			return 1;
-//    }
-
-/**
- * Get activation state of the wrap around filter
- * @return     Filter enabled or not, when filter is not supported it always returns 0S
- */			
-//    int FilterGetState()
-//    {
-//       return VL6180x_FilterGetState(Device);
-//			return 1;
-//    }
-
-/**
- * @brief Set activation state of  DMax computation
- * @param state New activation state (0=off,  otherwise on)
- * @return      0 on success
- */		
-//    int DMaxSetState(int state)
-//    {
-//       return VL6180x_DMaxSetState(Device, state);
-//			return 1;
-//    }
-
-/**
- * Get activation state of DMax computation
- * @return     Filter enabled or not, when filter is not supported it always returns 0S
- */		
-//    int DMaxGetState()
-//    {
-//       return VL6180x_DMaxGetState(Device);
-//			return 1;
-//    }
-
-/**
- * @brief Set ranging mode and start/stop measure (use high level functions instead : @a VL6180x_RangeStartSingleShot() or @a VL6180x_RangeStartContinuousMode())
- *
- * @par Function Description
- * When used outside scope of known polling single shot stopped state, \n
- * user must ensure the device state is "idle" before to issue a new command.
- *
- * @param mode  A combination of working mode (#MODE_SINGLESHOT or #MODE_CONTINUOUS) and start/stop condition (#MODE_START_STOP) \n
- * @return      0 on success
- */		
-//    int RangeSetSystemMode(uint8_t mode)
-//    {
-//       return VL6180x_RangeSetSystemMode(Device, mode);
-//			return 1;
-//    }
-
-/** @}  */ 
-
-/** @defgroup api_ll_range_calibration Ranging calibration functions
- *  @brief    Ranging calibration functions
- *  @ingroup api_ll
- *  @{  
- */
-/**
- * @brief Get part to part calibration offset
- *
- * @par Function Description
- * Should only be used after a successful call to @a VL6180x_InitData to backup device nvm value
- *
- * @return part to part calibration offset from device
- */		
-//    int8_t GetOffsetCalibrationData()
-//    {
-//       return VL6180x_GetOffsetCalibrationData(Device);
-//			return 1;
-//    }
-
-/**
- * Set or over-write part to part calibration offset
- * \sa VL6180x_InitData(), VL6180x_GetOffsetCalibrationData()
- * @param offset   Offset
- */		
-//    void SetOffsetCalibrationData(int8_t offset)
-//    {
-//       return VL6180x_SetOffsetCalibrationData(Device, offset);
-//			return;
-//    }
-
-/**
- * @brief Set Cross talk compensation rate
- *
- * @par Function Description
- * It programs register @a #SYSRANGE_CROSSTALK_COMPENSATION_RATE
- *
- * @param Rate Compensation rate (9.7 fix point) see datasheet for details
- * @return     0 on success
- */		
-//    int SetXTalkCompensationRate(uint16_t Rate)
-//    {
-//       return VL6180x_SetXTalkCompensationRate(Device, Rate);
-//			return 1;
-//    }
-/** @}  */
-
-/**
  * @brief Set new device i2c address
  *
  * After completion the device will answer to the new address programmed.
@@ -904,57 +507,57 @@ class VL53L0X : public RangeSensor
  * @sa AN4478: Using multiple VL6180X's in a single design
  * @param NewAddr   The new i2c address (7bit)
  * @return          0 on success
- */		
+ */
     int SetDeviceAddress(int NewAddr)
     {
        int status;
-			
+
        status=VL53L0X_SetDeviceAddress(Device, NewAddr);
        if(!status)
           Device->I2cDevAddr=NewAddr;
        return status;
     }
-	
+
 	int PerformRefCalibration(uint8_t *pVhvSettings, uint8_t *pPhaseCal)
 	{
 		return VL53L0X_PerformRefCalibration(Device, pVhvSettings, pPhaseCal);
 	}
-	
+
 	int PerformRefSpadManagement(uint32_t *refSpadCount, uint8_t *isApertureSpads)
 	{
 		return VL53L0X_PerformRefSpadManagement(Device, refSpadCount, isApertureSpads);
 	}
-	
+
 	int SetDeviceMode(VL53L0X_DeviceModes DeviceMode)
 	{
 		return VL53L0X_SetDeviceMode(Device, DeviceMode);
 	}
-	
+
 	int SetMeasurementTimingBudgetMicroSeconds(uint32_t MeasurementTimingBudgetMicroSeconds)
 	{
 		return VL53L0X_SetMeasurementTimingBudgetMicroSeconds(Device, MeasurementTimingBudgetMicroSeconds);
 	}
-	
+
 	int StartMeasurement()
 	{
 		return VL53L0X_StartMeasurement(Device);
 	}
-	
+
 	int StopMeasurement()
 	{
 		return VL53L0X_StopMeasurement(Device);
 	}
-	
+
 	int GetMeasurementDataReady(uint8_t *pMeasurementDataReady)
 	{
 		return VL53L0X_GetMeasurementDataReady(Device, pMeasurementDataReady);
 	}
-	
+
 	int GetRangingMeasurementData(VL53L0X_RangingMeasurementData_t *pRangingMeasurementData)
 	{
 		return VL53L0X_GetRangingMeasurementData(Device, pRangingMeasurementData);
 	}
-	
+
 	int ClearInterruptMask(uint32_t InterruptMask)
 	{
 		return VL53L0X_ClearInterruptMask(Device, InterruptMask);
@@ -966,10 +569,10 @@ class VL53L0X : public RangeSensor
 /** @defgroup api_ll_intr Interrupts management functions
  *  @brief    Interrupts management functions
  *  @ingroup api_ll
- *  @{  
+ *  @{
  */
-	
- private:		
+
+ private:
     /* api.h functions */
     VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev);
     VL53L0X_Error VL53L0X_GetOffsetCalibrationDataMicroMeter(VL53L0X_DEV Dev, int32_t *pOffsetCalibrationDataMicroMeter);
@@ -1155,12 +758,12 @@ class VL53L0X : public RangeSensor
 
     /* Read function of the ID device */
     virtual int ReadID();
-    
+
     VL53L0X_Error WaitMeasurementDataReady(VL53L0X_DEV Dev);
     VL53L0X_Error WaitStopCompleted(VL53L0X_DEV Dev);
 
     /* Write and read functions from I2C */
-		
+
     VL53L0X_Error VL53L0X_WrByte(VL53L0X_DEV dev, uint8_t index, uint8_t data);
     VL53L0X_Error VL53L0X_WrWord(VL53L0X_DEV dev, uint8_t index, uint16_t data);
     VL53L0X_Error VL53L0X_WrDWord(VL53L0X_DEV dev, uint8_t index, uint32_t data);
@@ -1168,49 +771,45 @@ class VL53L0X : public RangeSensor
     VL53L0X_Error VL53L0X_RdWord(VL53L0X_DEV dev, uint8_t index, uint16_t *data);
     VL53L0X_Error VL53L0X_RdDWord(VL53L0X_DEV dev, uint8_t index, uint32_t *data);
     VL53L0X_Error VL53L0X_UpdateByte(VL53L0X_DEV dev, uint8_t index, uint8_t AndData, uint8_t OrData);
-		
+
     VL53L0X_Error VL53L0X_WriteMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, uint32_t count);
     VL53L0X_Error VL53L0X_ReadMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, uint32_t count);
-		
+
 	VL53L0X_Error VL53L0X_I2CWrite(uint8_t dev, uint8_t index, uint8_t *data, uint16_t number_of_bytes);
 	VL53L0X_Error VL53L0X_I2CRead(uint8_t dev, uint8_t index, uint8_t *data, uint16_t number_of_bytes);
-		
+
     VL53L0X_Error VL53L0X_PollingDelay(VL53L0X_DEV Dev); /* usually best implemented as a real function */
-		
+
     int IsPresent()
     {
        int status;
-			
+
        status=ReadID();
        if(status)
           VL53L0X_ErrLog("Failed to read ID device. Device not present!\n\r");
        return status;
-    }	
+    }
     int StopRangeMeasurement(OperatingMode operating_mode);
-    int GetRangeMeas(OperatingMode operating_mode, VL53L0X_RangingMeasurementData_t *Data);	
+    int GetRangeMeas(OperatingMode operating_mode, VL53L0X_RangingMeasurementData_t *Data);
     int RangeSetLowThreshold(uint16_t threshold);
     int RangeSetHighThreshold(uint16_t threshold);
     int GetRangeError(VL53L0X_RangingMeasurementData_t *Data, VL53L0X_RangingMeasurementData_t RangeData);
     int RangeMeasPollSingleShot();
-    int RangeMeasPollContinuousMode();	
+    int RangeMeasPollContinuousMode();
     int RangeMeasIntContinuousMode(void (*fptr)(void));
 
 
     VL53L0X_DeviceInfo_t DeviceInfo;
-		
+
     /* IO Device */
     TwoWire *dev_i2c;
     /* Digital out pin */
 	int gpio0;
-    /* GPIO expander */
-    STMPE1600DigiOut *expgpio0;
 	int gpio1Int;
     /* Device data */
 	VL53L0X_Dev_t MyDevice;
-    VL53L0X_DEV Device;  
+    VL53L0X_DEV Device;
 };
 
 
 #endif /* _VL53L0X_CLASS_H_ */
-
-
