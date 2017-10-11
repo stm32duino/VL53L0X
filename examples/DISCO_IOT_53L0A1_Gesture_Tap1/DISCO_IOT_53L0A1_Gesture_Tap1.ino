@@ -46,8 +46,8 @@
 #include <tof_gestures_TAP_1.h>
 
 // Create components.
-TwoWire WIRE1(D34, D33);  //SDA=D34 & SCL=D33
-VL53L0X sensor_vl53l0x(&WIRE1, D38, D39); //XSHUT=D38 & INT=D39
+TwoWire WIRE1(PB11, PB10);  //SDA=PB11 & SCL=PB10
+VL53L0X sensor_vl53l0x(&WIRE1, PC6, PC7); //XSHUT=PC6 & INT=PC7
 
 // Gesture structure.
 Gesture_TAP_1_Data_t gestureTapData;
