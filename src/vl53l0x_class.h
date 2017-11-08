@@ -308,7 +308,10 @@ class VL53L0X : public RangeSensor
        MyDevice.comms_type=1; // VL53L0X_COMMS_I2C
        MyDevice.comms_speed_khz=400;
        Device=&MyDevice;
-       pinMode(gpio0, OUTPUT);
+       if(gpio0 >= 0)
+       {
+         pinMode(gpio0, OUTPUT);
+       }
     }
     
    /** Destructor
@@ -326,7 +329,10 @@ class VL53L0X : public RangeSensor
     /* turns on the sensor */
     virtual void VL53L0X_On(void)
     {
-       digitalWrite(gpio0, HIGH);
+       if(gpio0 >= 0)
+       {
+         digitalWrite(gpio0, HIGH);
+       }
        delay(10);
     }
 
@@ -337,7 +343,10 @@ class VL53L0X : public RangeSensor
     /* turns off the sensor */
     virtual void VL53L0X_Off(void)
     {
-       digitalWrite(gpio0, LOW);
+       if(gpio0 >= 0)
+       {
+         digitalWrite(gpio0, LOW);
+       }
        delay(10);
     }
 
@@ -572,7 +581,7 @@ class VL53L0X : public RangeSensor
  *  @{
  */
 
- private:
+ protected:
     /* api.h functions */
     VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev);
     VL53L0X_Error VL53L0X_GetOffsetCalibrationDataMicroMeter(VL53L0X_DEV Dev, int32_t *pOffsetCalibrationDataMicroMeter);
@@ -798,7 +807,7 @@ class VL53L0X : public RangeSensor
     int RangeMeasPollContinuousMode();
     int RangeMeasIntContinuousMode(void (*fptr)(void));
 
-
+ protected:
     VL53L0X_DeviceInfo_t DeviceInfo;
 
     /* IO Device */
