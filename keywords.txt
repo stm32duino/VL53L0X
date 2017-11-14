@@ -90,24 +90,6 @@ SetMeasurementTimingBudgetMicroSeconds			KEYWORD2
 GetMeasurementDataReady					KEYWORD2
 GetRangingMeasurementData				KEYWORD2
 ClearInterruptMask					KEYWORD2
-RB_init							KEYWORD2
-RB_push							KEYWORD2
-RB_pop							KEYWORD2
-RB_full							KEYWORD2
-RB_trace						KEYWORD2
-RB_sum							KEYWORD2
-RB_mean							KEYWORD2
-RB_mad							KEYWORD2
-RB_dir							KEYWORD2
-tof_gestures_initDIRSWIPE_1				KEYWORD2
-tof_gestures_detectDIRSWIPE_1				KEYWORD2
-tof_gestures_initSWIPE_1				KEYWORD2
-tof_gestures_detectSWIPE_1				KEYWORD2
-tof_gestures_initTAP_1					KEYWORD2
-tof_gestures_detectTAP_1				KEYWORD2
-tof_initMotion						KEYWORD2
-tof_getMotion						KEYWORD2
-
 
 #######################################
 # Constants (LITERAL1)
