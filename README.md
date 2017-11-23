@@ -21,6 +21,12 @@ There are 3 examples with the VL53L0X library.
 * DISCO_IOT_Gesture_Tap1: This example code is to show how to combine the
   proximity value of the onboard VL53L0X sensor together with the gesture
   library in order to detect a simple tap gesture.
+  
+# Dependencies
+
+The VL53L0X library requires the following STM32duino library:
+
+* STM32duino Proximity_Gesture: https://github.com/stm32duino/Proximity_Gesture
 
 ## Note
 
