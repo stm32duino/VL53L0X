@@ -22,7 +22,7 @@ There are 3 examples with the VL53L0X library.
   proximity value of the onboard VL53L0X sensor together with the gesture
   library in order to detect a simple tap gesture.
   
-# Dependencies
+## Dependencies
 
 The VL53L0X library requires the following STM32duino library:
 
