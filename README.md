@@ -37,6 +37,9 @@ The detection range can be comprise between ~40cm and ~120cm. (see chapter 5 of
 the VL53L0X datasheet).
 If you need an higher accuracy (up to +200cm), you should implement your own
 function.
+The library should work also with standard Arduino boards. In this case you just
+need to adjust the code in the sketch in order to use the correct Wire instance and
+the correct pin number for XSHUT and GPIO1 pins.
 
 ## Documentation
 
