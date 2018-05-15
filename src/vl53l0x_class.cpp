@@ -47,6 +47,10 @@
 #include "vl53l0x_tuning.h"
 #include "vl53l0x_types.h"
 
+#ifndef UNUSED
+#define UNUSED(x) x
+#endif
+
 
 /****************** define for i2c configuration *******************************/
 
