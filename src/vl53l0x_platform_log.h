@@ -88,13 +88,13 @@ void trace_print_module_function(uint32_t module, uint32_t level, uint32_t funct
 #define LOG_GET_TIME() (int)clock()
 
 #define _LOG_FUNCTION_START(module, fmt, ... ) \
-        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%ld <START> %s "fmt"\n", LOG_GET_TIME(), __FUNCTION__, ##__VA_ARGS__);
+        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%ld <START> %s " fmt "\n", LOG_GET_TIME(), __FUNCTION__, ##__VA_ARGS__);
 
 #define _LOG_FUNCTION_END(module, status, ... )\
         trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%ld <END> %s %d\n", LOG_GET_TIME(), __FUNCTION__, (int)status, ##__VA_ARGS__)
 
 #define _LOG_FUNCTION_END_FMT(module, status, fmt, ... )\
-        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%ld <END> %s %d "fmt"\n", LOG_GET_TIME(),  __FUNCTION__, (int)status,##__VA_ARGS__)
+        trace_print_module_function(module, _trace_level, TRACE_FUNCTION_ALL, "%ld <END> %s %d " fmt "\n", LOG_GET_TIME(),  __FUNCTION__, (int)status,##__VA_ARGS__)
 
 // __func__ is gcc only
 #define VL53L0X_ErrLog( fmt, ...)  fprintf(stderr, "VL53L0X_ErrLog %s" fmt "\n", __func__, ##__VA_ARGS__)
