@@ -48,7 +48,7 @@
 #include "vl53l0x_types.h"
 
 #ifndef UNUSED
-#define UNUSED(x) x
+#define UNUSED(x) (void)x
 #endif
 
 
@@ -387,7 +387,7 @@ VL53L0X_Error VL53L0X::VL53L0X_get_offset_calibration_data_micro_meter(VL53L0X_D
 {
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	uint16_t RangeOffsetRegister;
-	int16_t cMaxOffset = 2047;
+	uint16_t cMaxOffset = 2047;
 	int16_t cOffsetRange = 4096;
 
 	/* Note that offset has 10.2 format */
@@ -2287,14 +2287,14 @@ VL53L0X_Error VL53L0X::VL53L0X_GetInterruptThresholds(VL53L0X_DEV Dev,
 
 	Status = VL53L0X_RdWord(Dev, VL53L0X_REG_SYSTEM_THRESH_LOW, &Threshold16);
 	/* Need to multiply by 2 because the FW will apply a x2 */
-	*pThresholdLow = (FixPoint1616_t)((0x00fff & Threshold16) << 17);
+	*pThresholdLow = ((FixPoint1616_t)(0x00fff & Threshold16) << 17);
 
 	if (Status == VL53L0X_ERROR_NONE) {
 		Status = VL53L0X_RdWord(Dev, VL53L0X_REG_SYSTEM_THRESH_HIGH,
 			&Threshold16);
 		/* Need to multiply by 2 because the FW will apply a x2 */
 		*pThresholdHigh =
-			(FixPoint1616_t)((0x00fff & Threshold16) << 17);
+			((FixPoint1616_t)(0x00fff & Threshold16) << 17);
 	}
 
 	LOG_FUNCTION_END(Status);
@@ -2391,8 +2391,8 @@ VL53L0X_Error VL53L0X::VL53L0X_CheckAndLoadInterruptSettings(VL53L0X_DEV Dev,
 	uint8_t StartNotStopFlag)
 {
 	uint8_t InterruptConfig;
-	FixPoint1616_t ThresholdLow;
-	FixPoint1616_t ThresholdHigh;
+	FixPoint1616_t ThresholdLow = 0;
+	FixPoint1616_t ThresholdHigh = 0;
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 
 	InterruptConfig = VL53L0X_GETDEVICESPECIFICPARAMETER(Dev,
@@ -2409,9 +2409,9 @@ VL53L0X_Error VL53L0X::VL53L0X_CheckAndLoadInterruptSettings(VL53L0X_DEV Dev,
 			VL53L0X_DEVICEMODE_CONTINUOUS_RANGING,
 			&ThresholdLow, &ThresholdHigh);
 
-		if (((ThresholdLow > 255*65536) ||
-			(ThresholdHigh > 255*65536)) &&
-			(Status == VL53L0X_ERROR_NONE)) {
+		if ((Status == VL53L0X_ERROR_NONE) &&
+		    ((ThresholdLow > 255*65536) ||
+			(ThresholdHigh > 255*65536))) {
 
 			if (StartNotStopFlag != 0) {
 				Status = VL53L0X_load_tuning_settings(Dev,
@@ -2646,7 +2646,7 @@ uint32_t VL53L0X::VL53L0X_isqrt(uint32_t num)
 	 */
 
 	uint32_t  res = 0;
-	uint32_t  bit = 1 << 30;
+	uint32_t  bit = (uint32_t)1 << 30;
 	/* The second-to-top bit is set:
 	 *	1 << 14 for 16-bits, 1 << 30 for 32 bits */
 
@@ -3056,7 +3056,7 @@ VL53L0X_Error VL53L0X::VL53L0X_calc_sigma_estimate(VL53L0X_DEV Dev,
 		xTalkCorrection <<= 8;
 
 		if(pRangingMeasurementData->RangeStatus != 0){
-			pwMult = 1 << 16;
+			pwMult = (FixPoint1616_t)1 << 16;
 		} else {
 			/* FixPoint1616/uint32 = FixPoint1616 */
 			pwMult = deltaT_ps/cVcselPulseWidth_ps; /* smaller than 1.0f */
@@ -3066,13 +3066,13 @@ VL53L0X_Error VL53L0X::VL53L0X_calc_sigma_estimate(VL53L0X_DEV Dev,
 			 * values are small enough such that32 bits will not be
 			 * exceeded.
 			 */
-			pwMult *= ((1 << 16) - xTalkCorrection);
+			pwMult *= (((FixPoint1616_t)1 << 16) - xTalkCorrection);
 
 			/* (FixPoint3232 >> 16) = FixPoint1616 */
 			pwMult =  (pwMult + c16BitRoundingParam) >> 16;
 
 			/* FixPoint1616 + FixPoint1616 = FixPoint1616 */
-			pwMult += (1 << 16);
+			pwMult += ((FixPoint1616_t)1 << 16);
 
 			/*
 			 * At this point the value will be 1.xx, therefore if we square
@@ -3422,7 +3422,7 @@ VL53L0X_Error VL53L0X::VL53L0X_GetRangingMeasurementData(VL53L0X_DEV Dev,
 	VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 	uint8_t DeviceRangeStatus;
 	uint8_t RangeFractionalEnable;
-	uint8_t PalRangeStatus;
+	uint8_t PalRangeStatus = 255;
 	uint8_t XTalkCompensationEnable;
 	uint16_t AmbientRate;
 	FixPoint1616_t SignalRate;
@@ -4997,7 +4997,7 @@ VL53L0X_Error VL53L0X::VL53L0X_RdDWord(VL53L0X_DEV Dev, uint8_t index, uint32_t 
    status = VL53L0X_I2CRead(Dev->I2cDevAddr, index, buffer, 4);
    if(!status)
    {
-	   *data = (buffer[0] << 24) + (buffer[1] << 16) + (buffer[2] << 8) + buffer[3];
+	   *data = ((uint32_t)buffer[0] << 24) + ((uint32_t)buffer[1] << 16) + ((uint32_t)buffer[2] << 8) + (uint32_t)buffer[3];
    }
    return status;
 
@@ -5023,7 +5023,7 @@ VL53L0X_Error VL53L0X::VL53L0X_I2CWrite(uint8_t DeviceAddr, uint8_t RegisterAddr
    dev_i2c->beginTransmission(((uint8_t)(((DeviceAddr) >> 1) & 0x7F)));
 
    dev_i2c->write(RegisterAddr);
-   for (int i = 0 ; i < NumByteToWrite ; i++)
+   for (uint16_t i = 0 ; i < NumByteToWrite ; i++)
      dev_i2c->write(pBuffer[i]);
 
    dev_i2c->endTransmission(true);
