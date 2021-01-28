@@ -302,16 +302,13 @@ class VL53L0X : public RangeSensor
      * @param[in] &pin_gpio1 pin Mbed InterruptIn PinName to be used as component GPIO_1 INT
      * @param[in] DevAddr device address, 0x29 by default
      */
-    VL53L0X(TwoWire *i2c, int pin, int pin_gpio1, uint8_t DevAddr=VL53L0x_DEFAULT_DEVICE_ADDRESS) : RangeSensor(), dev_i2c(i2c), gpio0(pin), gpio1Int(pin_gpio1)
+    VL53L0X(TwoWire *i2c, int pin) : RangeSensor(), dev_i2c(i2c), gpio0(pin)
     {
-       MyDevice.I2cDevAddr=DevAddr;
+       Device=&MyDevice;
+       memset((void *)Device, 0x0, sizeof(VL53L0X_Dev_t));
+       MyDevice.I2cDevAddr=VL53L0x_DEFAULT_DEVICE_ADDRESS;
        MyDevice.comms_type=1; // VL53L0X_COMMS_I2C
        MyDevice.comms_speed_khz=400;
-       Device=&MyDevice;
-       if(gpio0 >= 0)
-       {
-         pinMode(gpio0, OUTPUT);
-       }
     }
     
    /** Destructor
@@ -319,6 +316,24 @@ class VL53L0X : public RangeSensor
     virtual ~VL53L0X(){}
     /* warning: VL53L0X class inherits from GenericSensor, RangeSensor and LightSensor, that haven`t a destructor.
        The warning should request to introduce a virtual destructor to make sure to delete the object */
+
+    virtual int begin()
+    {
+       if(gpio0 >= 0)
+       {
+          pinMode(gpio0, OUTPUT);
+       }
+       return 0;
+    }
+
+    virtual int end()
+    {
+       if(gpio0 >= 0)
+       {
+          pinMode(gpio0, INPUT);
+       }
+       return 0;
+    }
 
 	/*** Interface Methods ***/
 	/*** High level API ***/
@@ -814,7 +829,6 @@ class VL53L0X : public RangeSensor
     TwoWire *dev_i2c;
     /* Digital out pin */
 	int gpio0;
-	int gpio1Int;
     /* Device data */
 	VL53L0X_Dev_t MyDevice;
     VL53L0X_DEV Device;
