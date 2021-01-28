@@ -7,7 +7,6 @@
 #######################################
 
 ComponentObject	KEYWORD1
-LightSensor	KEYWORD1
 RangeSensor	KEYWORD1
 VL53L0X	KEYWORD1
 
@@ -15,6 +14,8 @@ VL53L0X	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
+begin	KEYWORD2
+end	KEYWORD2
 Init	KEYWORD2
 ReadID	KEYWORD2
 GetLight	KEYWORD2

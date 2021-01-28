@@ -45,7 +45,7 @@
 
 // Create components.
 TwoWire WIRE1(PB11, PB10);  //SDA=PB11 & SCL=PB10
-VL53L0X sensor_vl53l0x(&WIRE1, PC6, PC7); //XSHUT=PC6 & INT=PC7
+VL53L0X sensor_vl53l0x(&WIRE1, PC6); //XSHUT=PC6
 
 /* Setup ---------------------------------------------------------------------*/
 
@@ -60,10 +60,13 @@ void setup() {
   // Initialize I2C bus.
   WIRE1.begin();
 
+  // Configure VL53L0X component.
+  sensor_vl53l0x.begin();
+
   // Switch off VL53L0X component.
   sensor_vl53l0x.VL53L0X_Off();
 
-  // Initialize VL53L0X top component.
+  // Initialize VL53L0X component.
   status = sensor_vl53l0x.InitSensor(0x10);
   if(status)
   {
