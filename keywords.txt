@@ -1,5 +1,5 @@
 #######################################
-# Syntax Coloring Map For ST_FlightSense_Sensor_Shields
+# Syntax Coloring Map For VL53L0X
 #######################################
 
 #######################################
