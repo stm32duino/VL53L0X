@@ -298,9 +298,8 @@ class VL53L0X : public RangeSensor
 {
  public:
     /** Constructor
-     * @param[in] &i2c device I2C to be used for communication
-     * @param[in] &pin_gpio1 pin Mbed InterruptIn PinName to be used as component GPIO_1 INT
-     * @param[in] DevAddr device address, 0x29 by default
+     * @param[in] i2c device I2C to be used for communication
+     * @param[in] pin shutdown pin to be used as component GPIO0
      */
     VL53L0X(TwoWire *i2c, int pin) : RangeSensor(), dev_i2c(i2c), gpio0(pin)
     {
