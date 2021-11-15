@@ -5156,11 +5156,6 @@ int VL53L0X::InitSensor(uint8_t NewAddr)
             return status;
          }
       }
-      else
-      {
-         printf("Invalid new address!\n\r");
-         return VL53L0X_ERROR_INVALID_PARAMS;
-      }
    }
    return status;
 }
